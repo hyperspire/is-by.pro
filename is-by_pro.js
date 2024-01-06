@@ -172,13 +172,6 @@ process.on('unhandledRejection', (err) => {
 
 init();
 
-function encrypt(plainText) {
-  const cipher = crypto.createCipheriv('aes-256-cbc', ibc.ibEncKey, ibc.ibEncIV);
-  let encrypted = cipher.update(plainText);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return encrypted.toString('base64');
-}
-
 const pool = mysql.createPool({
   host: ibc.ibMySQLHost,
   user: ibc.ibMySQLUser,
@@ -186,6 +179,13 @@ const pool = mysql.createPool({
   database: ibc.ibMySQLDatabase,
   connectionLimit: ibc.ibConnLimit
 });
+
+function encrypt(plainText) {
+  const cipher = crypto.createCipheriv('aes-256-cbc', ibc.ibEncKey, ibc.ibEncIV);
+  let encrypted = cipher.update(plainText);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return encrypted.toString('base64');
+}
 
 function escapeHTML(unsafe) {
   return unsafe
