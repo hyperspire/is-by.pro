@@ -335,7 +335,7 @@ async function generateIBProAuthResponseTop(ibUID, ibAuthToken, ibSelectedUser) 
       // No valid user found, resolve with error message.
       resolve({
         success: false,
-        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint: 0x62ee37bf: ]]:'
+        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x62ee37bf: ]]:'
       });
     } else {
       ibUser = userResults[0].user;
@@ -419,7 +419,7 @@ async function generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser
       // No valid user found, resolve with error message.
       resolve({
         success: false,
-        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint: 0x1ff50120: ]]:'
+        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
       });
     } else {
       ibUser = userResults[0].user;
@@ -480,7 +480,7 @@ function generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, postid, forthe, isb
       // No valid user found, resolve with error message.
       resolve({
         success: false,
-        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint: 0x1ff50120: ]]:'
+        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
       });
     } else {
       ibUser = userResults[0].user;
@@ -547,7 +547,7 @@ async function generateIBProAuthResponseBottom(ibUID, ibAuthToken, ibSelectedUse
       // No valid user found, resolve with error message.
       resolve({
         success: false,
-        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint: 0x1ff50120: ]]:'
+        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
       });
     } else {
       ibUser = userResults[0].user;
@@ -567,7 +567,7 @@ async function generateIBProAuthResponseBottom(ibUID, ibAuthToken, ibSelectedUse
       // No profile found, resolve with error message.
       resolve({
         success: false,
-        message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: code-checkpoint: 0x0da7e94d: ]]: ]]:'
+        message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: code-checkpoint-reached: 0x0da7e94d: ]]: ]]:'
       });
     } else {
       ibIBP = ibProResults[0].ibp ||= '';
@@ -648,7 +648,7 @@ async function generateIBProDefaultResponseBottom(ibSelectedUser) {
       // No profile found, resolve with error message.
       resolve({
         success: false,
-        message: ':[[ :WARNO: no-profile-found: code-checkpoint: 0xa5fa2f52: ]]:'
+        message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: code-checkpoint-reached: 0x8f0dbd05: ]]: ]]:'
       });
     } else {
       ibIBP = ibProResults[0].ibp ||= '';
