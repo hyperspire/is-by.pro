@@ -1,0 +1,24 @@
+{
+  "name": "is-by.pro",
+  "version": "1.0.0",
+  "description": ":[[ :is-by: pro: is-with: anti-social: social-media: for-the: [[ PEOPLE: ]]: ]]:",
+  "main": "is-by_pro.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hyperspire/is-by.pro.git"
+  },
+  "author": "HyperSpire Foundation",
+  "license": "SEE LICENSE IN License.txt",
+  "bugs": {
+    "url": "https://github.com/hyperspire/is-by.pro/issues"
+  },
+  "homepage": "https://github.com/hyperspire/is-by.pro#readme",
+  "dependencies": {
+    "@hapi/hapi": "^21.3.2",
+    "@hapi/inert": "^7.1.0",
+    "mysql": "^2.18.1"
+  }
+}
