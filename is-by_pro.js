@@ -444,11 +444,11 @@ async function generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser
     if (ibPostResultsLength >= ibPostResultsLengthMax) {
       for (let i = ibPostResultsLength - 1; i >= ibPostResultsLengthMax; i--) {
         const ibPostRow = ibPostResults[i];
-        ibPostID = ibPostRow.postid as string;
-        ibPostForThe = ibPostRow.forthe as string;
-        ibPostIsBy = ibPostRow.isby as string;
-        ibPostIsWith = ibPostRow.iswith as string;
-        ibPostTimestamp = ibPostRow.timestamp as string;
+        ibPostID = ibPostRow.postid;
+        ibPostForThe = ibPostRow.forthe;
+        ibPostIsBy = ibPostRow.isby;
+        ibPostIsWith = ibPostRow.iswith;
+        ibPostTimestamp = ibPostRow.timestamp;
         
         ibPosts += generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, ibPostID, ibPostForThe, ibPostIsBy, ibPostIsWith, ibPostTimestamp);
       }
