@@ -49,39 +49,6 @@ const ibc = require('./is-by_config.json');
 const domain = ibc.ibDomain;
 const copyright = ibc.ibCopyright;
 
-function encrypt(plainText) {
-  const cipher = crypto.createCipheriv('aes-256-cbc', ibc.ibEncKey, ibc.ibEncIV);
-  let encrypted = cipher.update(plainText);
-  encrypted = Buffer.concat([encrypted, cipher.final()]);
-  return encrypted.toString('base64');
-}
-
-const pool = mysql.createPool({
-  host: ibc.ibMySQLHost,
-  user: ibc.ibMySQLUser,
-  password: ibc.ibMySQLPassword,
-  database: ibc.ibMySQLDatabase,
-  connectionLimit: ibc.ibConnLimit
-});
-
-function escapeHTML(unsafe) {
-  return unsafe
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll("\"", "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
-function unescapeHTML(unsafe) {
-  return unsafe
-    .replaceAll("&amp;", "&")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">")
-    .replaceAll("&quot;", "\"",)
-    .replaceAll("&#039;", "'");
-}
-
 const init = async () => {
   const server = Hapi.server({
     port: ibc.ibPort,
@@ -204,6 +171,39 @@ process.on('unhandledRejection', (err) => {
 });
 
 init();
+
+function encrypt(plainText) {
+  const cipher = crypto.createCipheriv('aes-256-cbc', ibc.ibEncKey, ibc.ibEncIV);
+  let encrypted = cipher.update(plainText);
+  encrypted = Buffer.concat([encrypted, cipher.final()]);
+  return encrypted.toString('base64');
+}
+
+const pool = mysql.createPool({
+  host: ibc.ibMySQLHost,
+  user: ibc.ibMySQLUser,
+  password: ibc.ibMySQLPassword,
+  database: ibc.ibMySQLDatabase,
+  connectionLimit: ibc.ibConnLimit
+});
+
+function escapeHTML(unsafe) {
+  return unsafe
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll("\"", "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function unescapeHTML(unsafe) {
+  return unsafe
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", "\"",)
+    .replaceAll("&#039;", "'");
+}
 
 async function generateIBProSignup(username, password) {
   const specialCharRegex = /\W/;
