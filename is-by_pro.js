@@ -426,17 +426,17 @@ async function generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser
   });
 
   let ibPosts = '';
-  let ibPostID: string;
-  let ibPostForThe: string;
-  let ibPostIsBy: string;
-  let ibPostIsWith: string;
-  let ibPostTimestamp: string;
+  let ibPostID = '';
+  let ibPostForThe = '';
+  let ibPostIsBy = '';
+  let ibPostIsWith = '';
+  let ibPostTimestamp = '';
 
   pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ?', [ibSelectedUserID], function (error, ibPostResults, fields) {
     if (error) reject(error);
 
-    const ibPostResultsLength: number = ibPostResults.length;
-    const ibPostResultsMaximum: number = 200;
+    const ibPostResultsLength = ibPostResults.length;
+    const ibPostResultsMaximum = 200;
 
     ibPosts = `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsLengthMax} ]]: ]]:</em></p></div>`;
 
