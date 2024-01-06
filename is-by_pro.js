@@ -394,7 +394,7 @@ async function generateIBProAuthResponseTop(ibUID, ibAuthToken, ibSelectedUser) 
           </div>
           <div id="post-form-section">
             <form id="post" action="https://${domain}/v1/post" method="POST">
-              <div id="post-character-count">0/1024</div>
+              <div id="post-character-count"></div>
               <input type="hidden" name="ibuid" value="${ibUID}">
               <input type="hidden" name="ibauthtoken" value="${ibAuthToken}">
               <input class="post-for-the" type="text" placeholder="for-the:" name="forthe" autocomplete="off" required>
@@ -567,7 +567,7 @@ async function generateIBProAuthResponseBottom(ibUID, ibAuthToken, ibSelectedUse
       // No profile found, resolve with error message.
       resolve({
         success: false,
-        message: ':[[ :WARNO: no-profile-found: code-checkpoint: 0x0da7e94d: ]]:'
+        message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: code-checkpoint: 0x0da7e94d: ]]: ]]:'
       });
     } else {
       ibIBP = ibProResults[0].ibp ||= '';
