@@ -1,0 +1,16 @@
+{
+    "ibEncKey": "*BagA~f6O3jILUeR[J(+))D:1UtkJeP,",
+    "ibEncIV": "}s0Gkr%?m/!e%h57",
+    "ibDomain": "is-by.pro",
+    "ibListenAddress": "127.0.0.1",
+    "ibPort": 443,
+    "ibCopyright": 2024,
+    "ibCA": "/home/hyperuser/hyperspire/ssl/is-by.pro.pem",
+    "ibCAKey": "/home/hyperuser/hyperspire/ssl/is-by.pro.key",
+    "ibCACert": "/home/hyperuser/hyperspire/ssl/is-by.pro.crt",
+    "ibMySQLHost": "ibp.us.hyperspire.net",
+    "ibMySQLUser": "hyperuser",
+    "ibMySQLPassword": "$yqbVExWr+noGhC6",
+    "ibMySQLDatabase": "isby",
+    "ibConnLimit": 1000
+}
