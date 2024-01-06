@@ -39,8 +39,8 @@
 // or logo of HyperSpire Foundation or its affiliates." ]]
 // [[ "Nothing else follows." ]]
 
-const Hapi = require('@hapi/hapi');
-const Inert = require('@hapi/inert');
+const hapi = require('@hapi/hapi');
+const inert = require('@hapi/inert');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
@@ -50,7 +50,7 @@ const domain = ibc.ibDomain;
 const copyright = ibc.ibCopyright;
 
 const init = async () => {
-  const server = Hapi.server({
+  const server = hapi.server({
     port: ibc.ibPort,
     host: ibc.ibListenAddress,
     tls: {
@@ -60,7 +60,7 @@ const init = async () => {
     }
   });
 
-  await server.register(Inert);
+  await server.register(inert);
 
   server.route({
     method: 'POST',
@@ -403,8 +403,7 @@ async function generateIBProAuthResponseTop(ibUID, ibAuthToken, ibSelectedUser) 
               <input id="post-cancel" class="post-cancel" type="button" value="Cancel">
               <input class="post-submit" type="submit" value="Post">
             </form>
-          </div>
-  `;
+          </div>`;
 }
 
 async function generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser) {
@@ -491,19 +490,19 @@ function generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, postid, forthe, isb
     if (ibUID === ibSelectedUserID) {
       // Logged in user is the selected user, show edit and delete menu options.
       return `
-          <div class="post-section">
-            <div class="for-the">
-              <!-- :[[ :for-the: [[ Δ: { ^ <userid: ${ibUID}> ^ }: ]]:= { postid: "${postid}" }: ]]: -->
-              <div><span class="heading">:[[ :for-the: [[ ${forthe}: ]]: ]]:</span></div>
-            </div>
-            <div class="is-by">
-              <div><span class="paragraph">:[[ :is-by: ${isby}: ]]:</span></div>
-            </div>
-            <div class="is-with">
-              <div><span class="description">:is-with: ${iswith}: <a class="select-user" href="${ibUser}">${ibUser}</a>: ${timestamp}</span></div><br>
-              <div><span class="description"><a class="post-link" href="${postid}">:[[ :post-link: ]]:</a> <a class="edit-post" href="${postid}">:[[ :edit: ]]: </a> <a class="delete-post" href="${postid}">:[[ :delete: ]]:</a></span></div>
-            </div>
-          </div>`;
+        <div class="post-section">
+          <div class="for-the">
+            <!-- :[[ :for-the: [[ Δ: { ^ <userid: ${ibUID}> ^ }: ]]:= { postid: "${postid}" }: ]]: -->
+            <div><span class="heading">:[[ :for-the: [[ ${forthe}: ]]: ]]:</span></div>
+          </div>
+          <div class="is-by">
+            <div><span class="paragraph">:[[ :is-by: ${isby}: ]]:</span></div>
+          </div>
+          <div class="is-with">
+            <div><span class="description">:is-with: ${iswith}: <a class="select-user" href="${ibUser}">${ibUser}</a>: ${timestamp}</span></div><br>
+            <div><span class="description"><a class="post-link" href="${postid}">:[[ :post-link: ]]:</a> <a class="edit-post" href="${postid}">:[[ :edit: ]]: </a> <a class="delete-post" href="${postid}">:[[ :delete: ]]:</a></span></div>
+          </div>
+        </div>`;
     } else {
       // Logged in user is not the selected user, do not show edit and delete menu options.
       return `
