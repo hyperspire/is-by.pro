@@ -135,20 +135,16 @@ const init = async () => {
   server.route({
     method: 'GET',
     path: '/favicon.ico',
-    handler: {
-      directory: {
-        path: path.join(__dirname, 'webroot/images'),
-      }
+    handler: function (request, h) {
+      return h.file('./webroot/images/favicon.ico');
     }
   });
 
   server.route({
     method: 'GET',
     path: '/robots.txt',
-    handler: {
-      directory: {
-        path: path.join(__dirname, 'webroot'),
-      }
+    handler: function (request, h) {
+      return h.file('./webroot/robots.txt');
     }
   });
 
@@ -312,7 +308,7 @@ async function generateIBProSelectedUserResponse(ibUID, ibAuthToken, ibSelectedU
     } else {
       if (ibSelectedUser) {
         // User selected, generate selected user content.
-        const selectedUserDefaultResponseTop = generateIBProDefaultResponseTop(ibSelectedUser);
+        const selectedUserDefaultResponseTop = generateIBProDefaultResponseTop();
         const selectedUserIBPostsResponseContent = generateIBPostsResponseContent(ibSelectedUser);
         const selectedUserDefaultResponseBottom = generateIBProDefaultResponseBottom(ibSelectedUser);
         const selectedUserDefaultResponse = selectedUserDefaultResponseTop + selectedUserIBPostsResponseContent + selectedUserDefaultResponseBottom;
@@ -470,22 +466,20 @@ async function generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser
   });
 }
 
-function generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, postid, forthe, isby, iswith, timestamp) {
+async function generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, postid, forthe, isby, iswith, timestamp) {
   const ibSelectedUserID = crypto.createHash('sha256').update(ibSelectedUser.toLowerCase()).digest('hex');
   // CREATE TABLE isby.user (id varchar(64), user varchar(128), secureid varchar(128), lastlog varchar(32), authtoken varchar(1024));
   let ibUser = '';
-  (async () => {
-    const [userResults] = await pool.query('SELECT user FROM user WHERE id = ?', [ibUID]);
-    if (userResults.length < 1) {
-      // No valid user found, resolve with error message.
-      return {
-        success: false,
-        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
-      };
-    } else {
-      ibUser = userResults[0].user;
-    }
-  })();
+  const [userResults] = await pool.query('SELECT user FROM user WHERE id = ?', [ibUID]);
+  if (userResults.length < 1) {
+    // No valid user found, resolve with error message.
+    return {
+      success: false,
+      message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
+    };
+  } else {
+    ibUser = userResults[0].user;
+  }
 
   if (ibAuthToken) {
     if (ibUID === ibSelectedUserID) {
@@ -516,7 +510,7 @@ function generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, postid, forthe, isb
             <div><span class="paragraph">:[[ :is-by: ${isby}: ]]:</span></div>
           </div>
           <div class="is-with">
-            <div><span class="description">:is-with: ${iswith}: <a class="post-link" href="${postid}">:[[ :post-link: ]]:</a> <a class="select-user" href="${selectedUser}">${selectedUser}</a>: ${timestamp}:</span></div>
+            <div><span class="description">:is-with: ${iswith}: <a class="post-link" href="${postid}">:[[ :post-link: ]]:</a> <a class="select-user" href="${ibSelectedUser}">${ibSelectedUser}</a>: ${timestamp}:</span></div>
           </div>
         </div>`;
     }
@@ -532,52 +526,40 @@ function generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, postid, forthe, isb
             <div><span class="paragraph">:[[ :is-by: ${isby}: ]]:</span></div>
           </div>
           <div class="is-with">
-            <div><span class="description">:is-with: ${iswith}: <a class="post-link" href="${postid}">:[[ :post-link: ]]:</a> <a class="select-user" href="${selectedUser}">${selectedUser}</a>: ${timestamp}:</span></div>
+            <div><span class="description">:is-with: ${iswith}: <a class="post-link" href="${postid}">:[[ :post-link: ]]:</a> <a class="select-user" href="${ibSelectedUser}">${ibSelectedUser}</a>: ${timestamp}:</span></div>
           </div>
         </div>`;
   }
 }
 
 async function generateIBProAuthResponseBottom(ibUID, ibAuthToken, ibSelectedUser) {
-  // CREATE TABLE isby.user (id varchar(64), user varchar(128), secureid varchar(128), lastlog varchar(32), authtoken varchar(1024));
   let ibUser = '';
-  (async () => {
-    const [userResults] = await pool.query('SELECT user FROM user WHERE id = ?', [ibUID]);
-    if (userResults.length < 1) {
-      // No valid user found, resolve with error message.
-      return {
-        success: false,
-        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
-      };
-    } else {
-      ibUser = userResults[0].user;
-    }
-  })();
+  const [userResults] = await pool.query('SELECT user FROM user WHERE id = ?', [ibUID]);
+  if (userResults.length < 1) {
+    // No valid user found, resolve with error message.
+    return {
+      success: false,
+      message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
+    };
+  } else {
+    ibUser = userResults[0].user;
+  }
 
-  // CREATE TABLE isby.pro (id varchar(64), ibp varchar(256), pro varchar(128), location varchar(128), services varchar(256), website varchar(512), github varchar(128));
-  let ibIBP = '';
-  let ibPro = '';
-  let ibLocation  = '';
-  let ibServices = '';
-  let ibWebsite = '';
-  let ibGitHub = '';
-  pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID], function (error, proResults, fields) {
-    if (error) reject(error);
-    if (proResults.length < 1) {
-      // No profile found, resolve with error message.
-      resolve({
-        success: false,
-        message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: code-checkpoint-reached: 0x0da7e94d: ]]: ]]:'
-      });
-    } else {
-      ibIBP = ibProResults[0].ibp ||= '';
-      ibPro = ibProResults[0].pro ||= '';
-      ibLocation = ibProResults[0].location ||= '';
-      ibServices = ibProResults[0].services ||= '';
-      ibWebsite = ibProResults[0].website ||= '';
-      ibGitHub = ibProResults[0].github ||= '';
-    }
-  });
+  const [proResults] = await pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID]);
+  if (proResults.length < 1) {
+    // No profile found, resolve with error message.
+    return {
+      success: false,
+      message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: code-checkpoint-reached: 0x0da7e94d: ]]: ]]:'
+    };
+  }
+
+  const ibIBP = proResults[0].ibp ||= '';
+  const ibPro = proResults[0].pro ||= '';
+  const ibLocation = proResults[0].location ||= '';
+  const ibServices = proResults[0].services ||= '';
+  const ibWebsite = proResults[0].website ||= '';
+  const ibGitHub = proResults[0].github ||= '';
 
   if (ibGitHub) {
     return `
@@ -609,9 +591,10 @@ async function generateIBProAuthResponseBottom(ibUID, ibAuthToken, ibSelectedUse
 </body>
 
 </html>`;
+  }
 }
 
-async function generateIBProDefaultResponseTop(ibSelectedUser) {
+async function generateIBProDefaultResponseTop() {
   return `<!DOCTYPE html>
   <html lang="en-US">
   
@@ -635,30 +618,21 @@ async function generateIBProDefaultResponseBottom(ibSelectedUser) {
   const domain = ibc.ibDomain;
   const ibUID = crypto.createHash('sha256').update(ibSelectedUser.toLowerCase()).digest('hex');
 
-  // CREATE TABLE isby.pro (id varchar(64), ibp varchar(256), pro varchar(128), location varchar(128), services varchar(256), website varchar(512), github varchar(128));
-  let ibIBP = '';
-  let ibPro = '';
-  let ibLocation = '';
-  let ibServices = '';
-  let ibWebsite = '';
-  let ibGitHub = '';
-  pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID], function (error, proResults, fields) {
-    if (error) reject(error);
-    if (proResults.length < 1) {
-      // No profile found, resolve with error message.
-      resolve({
-        success: false,
-        message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: code-checkpoint-reached: 0x8f0dbd05: ]]: ]]:'
-      });
-    } else {
-      ibIBP = ibProResults[0].ibp ||= '';
-      ibPro = ibProResults[0].pro ||= '';
-      ibLocation = ibProResults[0].location ||= '';
-      ibServices = ibProResults[0].services ||= '';
-      ibWebsite = ibProResults[0].website ||= '';
-      ibGitHub = ibProResults[0].github ||= '';
-    }
-  });
+  const [proResults] = await pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID]);
+  if (proResults.length < 1) {
+    // No profile found, resolve with error message.
+    return {
+      success: false,
+      message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: code-checkpoint-reached: 0x8f0dbd05: ]]: ]]:'
+    };
+  }
+
+  const ibIBP = proResults[0].ibp ||= '';
+  const ibPro = proResults[0].pro ||= '';
+  const ibLocation = proResults[0].location ||= '';
+  const ibServices = proResults[0].services ||= '';
+  const ibWebsite = proResults[0].website ||= '';
+  const ibGitHub = proResults[0].github ||= '';
 
   if (ibGitHub) {
     return `
@@ -725,6 +699,9 @@ async function generateIBProDefaultResponseBottom(ibSelectedUser) {
 }
 
 async function generateIBProDefaultResponse() {
+  const domain = ibc.ibDomain;
+  const copyright = ibc.ibCopyright;
+
   return `<!DOCTYPE html>
 <html lang="en-US">
 
