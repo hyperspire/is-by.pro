@@ -297,14 +297,14 @@ async function generateIBProSelectedUserResponse(ibUID, ibAuthToken, ibSelectedU
           resolve(generateIBProDefaultResponse());
         } else {
           // Valid AuthToken found, generate authenticated content.
-          const selectedUserAuthResponseTop = await generateIBProAuthResponseTop(ibUID, ibAuthToken, ibSelectedUser);
+          const selectedUserAuthResponseTop = generateIBProAuthResponseTop(ibUID, ibAuthToken, ibSelectedUser);
           // Does not matter if user is authenticated or not, generate selected user content;
           // since we are not fascists that require everyone to be logged in to view our content
           // so we can track them and sell their data to the highest bidder or use it as
           // circumstantial evidence in the ATSU unknown competitor projects. In fact, we do
           // not even use cookies or generate logs, we use a custom identity service and encrypted AuthTokens instead.
-          const selectedUserIBPostsResponseContent = await generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser);
-          const selectedUserAuthResponseBottom = await generateIBProAuthResponseBottom(ibUID, ibAuthToken, ibSelectedUser);
+          const selectedUserIBPostsResponseContent = generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser);
+          const selectedUserAuthResponseBottom = generateIBProAuthResponseBottom(ibUID, ibAuthToken, ibSelectedUser);
           const selectedUserAuthResponse = selectedUserAuthResponseTop + selectedUserIBPostsResponseContent + selectedUserAuthResponseBottom;
           resolve(selectedUserAuthResponse);
         }
@@ -312,9 +312,9 @@ async function generateIBProSelectedUserResponse(ibUID, ibAuthToken, ibSelectedU
     } else {
       if (ibSelectedUser) {
         // User selected, generate selected user content.
-        const selectedUserDefaultResponseTop = await generateIBProDefaultResponseTop(ibSelectedUser);
-        const selectedUserIBPostsResponseContent = await generateIBPostsResponseContent(ibSelectedUser);
-        const selectedUserDefaultResponseBottom = await generateIBProDefaultResponseBottom(ibSelectedUser);
+        const selectedUserDefaultResponseTop = generateIBProDefaultResponseTop(ibSelectedUser);
+        const selectedUserIBPostsResponseContent = generateIBPostsResponseContent(ibSelectedUser);
+        const selectedUserDefaultResponseBottom = generateIBProDefaultResponseBottom(ibSelectedUser);
         const selectedUserDefaultResponse = selectedUserDefaultResponseTop + selectedUserIBPostsResponseContent + selectedUserDefaultResponseBottom;
         resolve(selectedUserDefaultResponse);
       } else {
@@ -329,18 +329,18 @@ async function generateIBProAuthResponseTop(ibUID, ibAuthToken, ibSelectedUser) 
   const domain = ibc.ibDomain;
   // CREATE TABLE isby.user (id varchar(64), user varchar(128), secureid varchar(128), lastlog varchar(32), authtoken varchar(1024));
   let ibUser = '';
-  pool.query('SELECT user FROM user WHERE id = ?', [ibUID], function (error, userResults, fields) {
-    if (error) reject(error);
+  (async () => {
+    const [userResults] = await pool.query('SELECT user FROM user WHERE id = ?', [ibUID]);
     if (userResults.length < 1) {
       // No valid user found, resolve with error message.
-      resolve({
+      return {
         success: false,
-        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x62ee37bf: ]]:'
-      });
+        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
+      };
     } else {
       ibUser = userResults[0].user;
     }
-  });
+  })();
 
   return `<!DOCTYPE html>
   <html lang="en-US">
@@ -410,21 +410,7 @@ async function generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser
   // Generate posts content for selected user.
   
   const ibSelectedUserID = crypto.createHash('sha256').update(ibSelectedUser.toLowerCase()).digest('hex');
-  // CREATE TABLE isby.user (id varchar(64), user varchar(128), secureid varchar(128), lastlog varchar(32), authtoken varchar(1024));
   let ibUser = '';
-  pool.query('SELECT user FROM user WHERE id = ?', [ibUID], function (error, userResults, fields) {
-    if (error) reject(error);
-    if (userResults.length < 1) {
-      // No valid user found, resolve with error message.
-      resolve({
-        success: false,
-        message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
-      });
-    } else {
-      ibUser = userResults[0].user;
-    }
-  });
-
   let ibPosts = '';
   let ibPostID = '';
   let ibPostForThe = '';
@@ -432,9 +418,21 @@ async function generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser
   let ibPostIsWith = '';
   let ibPostTimestamp = '';
 
-  pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ?', [ibSelectedUserID], function (error, ibPostResults, fields) {
-    if (error) reject(error);
+  try {
+    (async () => {
+      const [userResults] = await pool.query('SELECT user FROM user WHERE id = ?', [ibUID]);
+      if (userResults.length < 1) {
+        // No valid user found, resolve with error message.
+        return {
+          success: false,
+          message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
+        };
+      } else {
+        ibUser = userResults[0].user;
+      }
+    })();
 
+    const [ibPostResults] = await pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ?', [ibSelectedUserID]);
     const ibPostResultsLength = ibPostResults.length;
     const ibPostResultsMaximum = 200;
 
@@ -466,6 +464,11 @@ async function generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser
       }
     }
 
+  } catch (error) {
+    console.error(error);
+    // Handle error...
+  }
+
   return ibPosts;
 }
 
@@ -473,18 +476,18 @@ function generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, postid, forthe, isb
   const ibSelectedUserID = crypto.createHash('sha256').update(ibSelectedUser.toLowerCase()).digest('hex');
   // CREATE TABLE isby.user (id varchar(64), user varchar(128), secureid varchar(128), lastlog varchar(32), authtoken varchar(1024));
   let ibUser = '';
-  pool.query('SELECT user FROM user WHERE id = ?', [ibUID], function (error, userResults, fields) {
-    if (error) reject(error);
+  (async () => {
+    const [userResults] = await pool.query('SELECT user FROM user WHERE id = ?', [ibUID]);
     if (userResults.length < 1) {
       // No valid user found, resolve with error message.
-      resolve({
+      return {
         success: false,
         message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
-      });
+      };
     } else {
       ibUser = userResults[0].user;
     }
-  });
+  })();
 
   if (ibAuthToken) {
     if (ibUID === ibSelectedUserID) {
@@ -540,26 +543,26 @@ function generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, postid, forthe, isb
 async function generateIBProAuthResponseBottom(ibUID, ibAuthToken, ibSelectedUser) {
   // CREATE TABLE isby.user (id varchar(64), user varchar(128), secureid varchar(128), lastlog varchar(32), authtoken varchar(1024));
   let ibUser = '';
-  pool.query('SELECT user FROM user WHERE id = ?', [ibUID], function (error, userResults, fields) {
-    if (error) reject(error);
+  (async () => {
+    const [userResults] = await pool.query('SELECT user FROM user WHERE id = ?', [ibUID]);
     if (userResults.length < 1) {
       // No valid user found, resolve with error message.
-      resolve({
+      return {
         success: false,
         message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
-      });
+      };
     } else {
       ibUser = userResults[0].user;
     }
-  });
+  })();
 
   // CREATE TABLE isby.pro (id varchar(64), ibp varchar(256), pro varchar(128), location varchar(128), services varchar(256), website varchar(512), github varchar(128));
-  let ibIBP: string = '';
-  let ibPro: string = '';
-  let ibLocation: string = '';
-  let ibServices: string = '';
-  let ibWebsite: string = '';
-  let ibGitHub: string = '';
+  let ibIBP = '';
+  let ibPro = '';
+  let ibLocation  = '';
+  let ibServices = '';
+  let ibWebsite = '';
+  let ibGitHub = '';
   pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID], function (error, proResults, fields) {
     if (error) reject(error);
     if (proResults.length < 1) {
@@ -635,12 +638,12 @@ async function generateIBProDefaultResponseBottom(ibSelectedUser) {
   const ibUID = crypto.createHash('sha256').update(ibSelectedUser.toLowerCase()).digest('hex');
 
   // CREATE TABLE isby.pro (id varchar(64), ibp varchar(256), pro varchar(128), location varchar(128), services varchar(256), website varchar(512), github varchar(128));
-  let ibIBP: string = '';
-  let ibPro: string = '';
-  let ibLocation: string = '';
-  let ibServices: string = '';
-  let ibWebsite: string = '';
-  let ibGitHub: string = '';
+  let ibIBP = '';
+  let ibPro = '';
+  let ibLocation = '';
+  let ibServices = '';
+  let ibWebsite = '';
+  let ibGitHub = '';
   pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID], function (error, proResults, fields) {
     if (error) reject(error);
     if (proResults.length < 1) {
