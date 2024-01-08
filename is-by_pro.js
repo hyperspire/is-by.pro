@@ -417,59 +417,57 @@ async function generateIBPostsResponseContent(ibUID, ibAuthToken, ibSelectedUser
   let ibPostIsBy = '';
   let ibPostIsWith = '';
   let ibPostTimestamp = '';
-
-  try {
-    (async () => {
+  return new Promise(async (resolve, reject) => {
+    try {
       const [userResults] = await pool.query('SELECT user FROM user WHERE id = ?', [ibUID]);
       if (userResults.length < 1) {
         // No valid user found, resolve with error message.
-        return {
+        reject({
           success: false,
           message: ':[[ :WARNO: no-valid-user-found: code-checkpoint-reached: 0x1ff50120: ]]:'
-        };
+        });
       } else {
         ibUser = userResults[0].user;
       }
-    })();
 
-    const [ibPostResults] = await pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ?', [ibSelectedUserID]);
-    const ibPostResultsLength = ibPostResults.length;
-    const ibPostResultsMaximum = 200;
+      const [ibPostResults] = await pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ?', [ibSelectedUserID]);
+      const ibPostResultsLength = ibPostResults.length;
+      const ibPostResultsMaximum = 200;
 
-    ibPosts = `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsLengthMax} ]]: ]]:</em></p></div>`;
+      ibPosts = `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsMaximum} ]]: ]]:</em></p></div>`;
 
-    // Post display algorithm, limited by ibPostResultsMaximum.
-    if (ibPostResultsLength >= ibPostResultsLengthMax) {
-      for (let i = ibPostResultsLength - 1; i >= ibPostResultsLengthMax; i--) {
-        const ibPostRow = ibPostResults[i];
-        ibPostID = ibPostRow.postid ||= '';
-        ibPostForThe = ibPostRow.forthe ||= '';
-        ibPostIsBy = ibPostRow.isby ||= '';
-        ibPostIsWith = ibPostRow.iswith ||= '';
-        ibPostTimestamp = ibPostRow.timestamp ||= '';
-        
-        ibPosts += generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, ibPostID, ibPostForThe, ibPostIsBy, ibPostIsWith, ibPostTimestamp);
+      // Post display algorithm, limited by ibPostResultsMaximum.
+      if (ibPostResultsLength >= ibPostResultsMaximum) {
+        for (let i = ibPostResultsLength - 1; i >= ibPostResultsMaximum; i--) {
+          const ibPostRow = ibPostResults[i];
+          ibPostID = ibPostRow.postid ||= '';
+          ibPostForThe = ibPostRow.forthe ||= '';
+          ibPostIsBy = ibPostRow.isby ||= '';
+          ibPostIsWith = ibPostRow.iswith ||= '';
+          ibPostTimestamp = ibPostRow.timestamp ||= '';
+          
+          ibPosts += generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, ibPostID, ibPostForThe, ibPostIsBy, ibPostIsWith, ibPostTimestamp);
+        }
+      } else {
+
+        for (let i = ibPostResultsLength - 1; i >= 0; i--) {
+          const ibPostRow = ibPostResults[i];
+          ibPostID = ibPostRow.postid ||= '';
+          ibPostForThe = ibPostRow.forthe ||= '';
+          ibPostIsBy = ibPostRow.isby ||= '';
+          ibPostIsWith = ibPostRow.iswith ||= '';
+          ibPostTimestamp = ibPostRow.timestamp ||= '';
+
+          ibPosts += generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, ibPostID, ibPostForThe, ibPostIsBy, ibPostIsWith, ibPostTimestamp);
+        }
       }
-    } else {
-
-      for (let i = ibPostResultsLength - 1; i >= 0; i--) {
-        const ibPostRow = ibPostResults[i];
-        ibPostID = ibPostRow.postid ||= '';
-        ibPostForThe = ibPostRow.forthe ||= '';
-        ibPostIsBy = ibPostRow.isby ||= '';
-        ibPostIsWith = ibPostRow.iswith ||= '';
-        ibPostTimestamp = ibPostRow.timestamp ||= '';
-
-        ibPosts += generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, ibPostID, ibPostForThe, ibPostIsBy, ibPostIsWith, ibPostTimestamp);
-      }
+      resolve(ibPosts);
+    } catch (error) {
+      console.error(error);
+      reject(error);
+      // Handle error...
     }
-
-  } catch (error) {
-    console.error(error);
-    // Handle error...
-  }
-
-  return ibPosts;
+  });
 }
 
 function generateIBPosts(ibUID, ibAuthToken, ibSelectedUser, postid, forthe, isby, iswith, timestamp) {
