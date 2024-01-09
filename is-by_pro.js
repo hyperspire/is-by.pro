@@ -203,6 +203,7 @@ function unescapeHTML(unsafe) {
 
 async function generateIBProSignup(username, password) {
   const specialCharRegex = /\W/;
+  const ibUID = crypto.createHash('sha256').update(username.toLowerCase()).digest('hex');
 
   return new Promise((resolve, reject) => {
     pool.query('SELECT user FROM user WHERE user = ?', [username], function (error, checkUserResults, fields) {
@@ -234,7 +235,7 @@ async function generateIBProSignup(username, password) {
           message: ':[[ :WARNO: password: too-short: ]]:'
         });
       } else {
-        pool.query('INSERT INTO user (user, secureid) VALUES (?, ?)', [username, password], function (error, addUserResults, fields) {
+        pool.query('INSERT INTO user (id, user, secureid) VALUES (?, ?, ?)', [ibUID, username, password], function (error, addUserResults, fields) {
           if (error) reject(error);
           resolve({
             success: true,
