@@ -224,9 +224,7 @@ function generateIBProSignup(username, password) {
   return new Promise(async (resolve, reject) => {
     const specialCharRegex = /\W/;
     const ibUID = (await selectIBProUID(username.toLowerCase())).id;
-    console.log('ibUID: ' + ibUID);
     const checkUserResults = await selectIBProUser(ibUID);
-    console.log('checkUserResults: ' + checkUserResults);
     if (checkUserResults !== null) {
       resolve({
         success: false,
@@ -265,10 +263,16 @@ function generateIBProSignup(username, password) {
 }
 
 async function generateIBProIdentity(request, h, username, password) {
+  return new Promise(async (resolve, reject) => {
+
+  });
 
 }
 
 async function generateIBProSelectedUserResponse(ibUID, ibAuthToken, ibSelectedUser) {
+  return new Promise(async (resolve, reject) => {
+
+  });
 
 }
 
