@@ -303,6 +303,7 @@ async function generateIBProSelectedUserResponse(ibUID, ibAuthToken, ibSelectedU
   (async () => {
     const userResults = await pool.query('SELECT user FROM user WHERE id = ?', [ibUID]);
     if (userResults.length < 1) {
+      
       // No valid user found, resolve with error message.
       return {
         success: false,
