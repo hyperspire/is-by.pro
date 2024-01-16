@@ -74,16 +74,14 @@ function attachLoginFormEventListener() {
         return response.text();
       })
       .then(data => {
-        if (data.failure) {
+        if (data.success === false) {
           generateIBFormMessageFailure('login-message', data.message);
-        } else if (data.success) {
+        } else {
           generateIBFormMessageSuccess('login-message', data.message);
           generateIBLoginFormSuccess(ibUsername, ibUID, ibAuthToken);
-        } else {
-          generateIBFormMessageFailure('login-message', ':[[ :WARNO: unauthorized: ]]:');
         }
       })
-      .catch(error => generateIBFormMessageFailure('login-message', ':[[ :WARNO: unauthorized: ]]:'))
+      .catch(error => generateIBFormMessageFailure('login-message', `:[[ :${error}: ]]:`))
   });
 }
 
@@ -569,7 +567,7 @@ function generateIBLoginFormSuccess(ibUser, ibUID, ibAuthToken) {
     headers: headers,
     body: body
   })
-  .then(response => response.json())
+  .then(response => response.text())
   .then(data => {
     // console.log(data);
     generateIBFormSuccess(data);

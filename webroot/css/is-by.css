@@ -106,7 +106,7 @@ body {
 
 .notice {
     display: inline-block;
-    width: 100%;
+    width: 544px;
     align-items: left;
     vertical-align: middle;
     justify-content: center;
@@ -119,6 +119,7 @@ body {
     background-color: #1e1e1e;
     position: relative;
     top: 22px;
+    left: -6px;
 }
 
 a,
