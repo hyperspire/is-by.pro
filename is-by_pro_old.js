@@ -207,7 +207,7 @@ async function generateIBProSignup(username, password) {
   const ibSecureIDHash = crypto.createHash('sha256').update(password).digest('hex');
 
   return new Promise((resolve, reject) => {
-    pool.query('SELECT user FROM user WHERE user = ?', [username], function (error, checkUserResults, fields) {
+    pool.query('SELECT username FROM user WHERE username = ?', [escapeHTML(username)], function (error, checkUserResults, fields) {
       if (error) reject(error);
 
       if (checkUserResults.length > 0) {
@@ -236,7 +236,7 @@ async function generateIBProSignup(username, password) {
           message: ':[[ :WARNO: password: too-short: ]]:'
         });
       } else {
-        pool.query('INSERT INTO user (id, user, secureid) VALUES (?, ?, ?)', [ibUID, username, ibSecureIDHash], function (error, addUserResults, fields) {
+        pool.query('INSERT INTO user (id, username, password) VALUES (?, ?, ?)', [ibUID, username, password], function (error, addUserResults, fields) {
           if (error) reject(error);
           resolve({
             success: true,
