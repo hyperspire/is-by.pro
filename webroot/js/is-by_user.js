@@ -83,7 +83,7 @@ function attachLoginFormEventListener() {
           generateIBFormMessageFailure('login-message', data.message);
         }
       })
-      // .catch(error => generateIBFormMessageFailure('login-message', `:[[ :${error}: ]]:`))
+      .catch(error => console.log(`:[[ :${error}: ]]:`))
   });
 }
 
