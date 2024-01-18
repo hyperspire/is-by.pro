@@ -67,12 +67,16 @@ function attachLoginFormEventListener() {
       .then(response => {
         ibUID = response.headers.get('ib-uid');
         ibAuthToken = response.headers.get('ib-authtoken');
-
-        return response.text();
+        if (response.ok) {
+          return response.json();
+        }
       })
       .then(data => {
         if (data.success === true) {
           generateIBFormMessageSuccess('login-message', data.message);
+          console.log('ibUsername:', ibUsername);
+          console.log('ibUID:', ibUID);
+          console.log('ibAuthToken:', ibAuthToken);
           generateIBLoginFormSuccess(ibUsername, ibUID, ibAuthToken);
         }
         if (data.success === false) {
