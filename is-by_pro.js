@@ -80,8 +80,9 @@ const init = async () => {
     handler: async function (request, h) {
       const username = request.payload.username;
       const password = encrypt(request.payload.password);
+      const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
 
-      return generateIBProIdentity(request, h, username, password);
+      return generateIBProIdentity(request, h, username, passwordHash);
     }
   });
 
@@ -93,7 +94,7 @@ const init = async () => {
       const ibAuthToken = request.headers['ib-authtoken'] ||= request.payload.ibauthtoken;
       const ibSelectedUser = request.path.slice(1);
 
-      return generateIBProSelectedUserResponse(ibUID, ibAuthToken, ibSelectedUser);
+      return generateIBProSelectedAuthUserResponse(ibUID, ibAuthToken, ibSelectedUser.toLowerCase());
     }
   });
 
@@ -235,20 +236,10 @@ function generateIBProSignup(username, password) {
         success: false,
         message: ':[[ :WARNO: username: special-characters: not: authorized: ]]:'
       });
-    } else if (username.length > 64) {
+    } else if (username.length > 128) {
       resolve({
         success: false,
         message: ':[[ :WARNO: username: too-long: ]]:'
-      });
-    } else if (password.length > 64) {
-      resolve({
-        success: false,
-        message: ':[[ :WARNO: password: too-long: ]]:'
-      });
-    } else if (password.length < 8) {
-      resolve({
-        success: false,
-        message: ':[[ :WARNO: password: too-short: ]]:'
       });
     } else {
       pool.query('INSERT INTO user (id, username, password) VALUES (?, ?, ?)', [ibUID, mysql.escape(username.toLowerCase()), password], function (error, addUserResults, fields) {
@@ -263,13 +254,42 @@ function generateIBProSignup(username, password) {
 }
 
 async function generateIBProIdentity(request, h, username, password) {
+  const ibUID = (await selectIBProUID(username.toLowerCase())).id;
+  const remoteAddress = request.info.remoteAddress;
+  const userAgent = request.headers['user-agent'];
+  const httpDate = new Date().toUTCString();
+  const ibAuthToken = encrypt(ibUID + username + password + remoteAddress + userAgent + httpDate);
+  const ibAuthTokenHash = crypto.createHash('sha256').update(ibAuthToken).digest('hex');
   return new Promise(async (resolve, reject) => {
+    pool.query('SELECT username FROM user WHERE id = ? AND password = ?', [ibUID, password], function (error, authUserResults, fields) {
+      if (error) reject(error);
+      if (authUserResults.length === 0) {
+        resolve({
+          success: false,
+          message: ':[[ :WARNO: username-or-password: incorrect: ]]:'
+        });
+      } else {
+        pool.query('UPDATE user SET authtoken = ?, lastlog = ? WHERE id = ? AND password = ?', [ibAuthTokenHash, httpDate, ibUID, password], function (error, authTokenResults, fields) {
+          if (error) reject(error);
+        });
+
+        const response = h.response({
+          success: true,
+          message: ':[[ :SUCCESS: user-authorized: ]]:'
+        });
+
+        response.header('ib-uid', ibUID);
+        response.header('ib-authtoken', ibAuthTokenHash);
+
+        resolve(response);
+      }
+    });
 
   });
 
 }
 
-async function generateIBProSelectedUserResponse(ibUID, ibAuthToken, ibSelectedUser) {
+async function generateIBProSelectedAuthUserResponse(ibUID, ibAuthToken, ibSelectedUser) {
   return new Promise(async (resolve, reject) => {
 
   });
