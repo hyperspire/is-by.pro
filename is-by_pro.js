@@ -266,7 +266,7 @@ async function generateIBProIdentity(request, h, username, password) {
       if (authUserResults.length === 0) {
         resolve({
           success: false,
-          message: ':[[ :WARNO: username-or-password: incorrect: ]]:'
+          message: ':[[ :WARNO: username-password-combination: incorrect: ]]:'
         });
       } else {
         pool.query('UPDATE user SET authtoken = ?, lastlog = ? WHERE id = ? AND password = ?', [ibAuthTokenHash, httpDate, ibUID, password], function (error, authTokenResults, fields) {
