@@ -78,8 +78,7 @@ function attachLoginFormEventListener() {
           console.log('ibUID:', ibUID);
           console.log('ibAuthToken:', ibAuthToken);
           generateIBLoginFormSuccess(ibUsername, ibUID, ibAuthToken);
-        }
-        if (data.success === false) {
+        } else if (data.success === false) {
           generateIBFormMessageFailure('login-message', data.message);
         }
       })
