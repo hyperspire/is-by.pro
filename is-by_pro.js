@@ -203,7 +203,21 @@ function unescapeHTML(unsafe) {
     .replaceAll("&#039;", "'");
 }
 
-async function selectIBProUser(ibUID) {
+async function authenticateUser(ibUID, ibAuthToken) {
+  return new Promise((resolve, reject) => {
+    pool.query('SELECT username FROM user WHERE id = ? AND authtoken = ?', [ibUID, ibAuthToken], function (error, authUserResults, fields) {
+      if (error) {
+        reject(error);
+      } else if (authUserResults.length > 0) {
+        resolve(true);
+      } else {
+        resolve(null);
+      }
+    });
+  });
+}
+
+async function selectUser(ibUID) {
   return new Promise((resolve, reject) => {
     pool.query('SELECT username FROM user WHERE id = ?', [ibUID], function (error, selectUserResults, fields) {
       if (error) {
@@ -217,15 +231,15 @@ async function selectIBProUser(ibUID) {
   });
 }
 
-async function selectIBProUID(ibUser) {
+async function selectUID(ibUser) {
   return { id: crypto.createHash('sha256').update(ibUser.toLowerCase()).digest('hex') };
 }
 
 function generateIBProSignup(username, password) {
   return new Promise(async (resolve, reject) => {
     const specialCharRegex = /\W/;
-    const ibUID = (await selectIBProUID(username.toLowerCase())).id;
-    const checkUserResults = await selectIBProUser(ibUID);
+    const ibUID = (await selectUID(username.toLowerCase())).id;
+    const checkUserResults = await selectUser(ibUID);
     if (checkUserResults !== null) {
       resolve({
         success: false,
@@ -254,7 +268,7 @@ function generateIBProSignup(username, password) {
 }
 
 async function generateIdentity(request, h, username, password) {
-  const ibUID = (await selectIBProUID(username.toLowerCase())).id;
+  const ibUID = (await selectUID(username.toLowerCase())).id;
   const remoteAddress = request.info.remoteAddress;
   const userAgent = request.headers['user-agent'];
   const httpDate = new Date().toUTCString();
@@ -292,8 +306,8 @@ async function generateIdentity(request, h, username, password) {
 async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, ibSelectedUser) {
   return new Promise(async (resolve, reject) => {
     const domain = ibc.ibDomain;
-    const ibSelectedUserID = (await selectIBProUID(ibSelectedUser)).id;
-    const ibUser = await selectIBProUser(ibUID);
+    const ibSelectedUserID = (await selectUID(ibSelectedUser)).id;
+    const ibUser = await selectUser(ibUID);
     let ibPostID = '';
     let ibPostForThe = '';
     let ibPostIsBy = '';
