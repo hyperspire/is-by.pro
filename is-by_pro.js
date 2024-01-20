@@ -155,7 +155,7 @@ const init = async () => {
     path: '/',
     handler: async function (request, h) {
 
-      return generateIBProDefaultResponse();
+      return generateDefaultResponse();
     }
 });
 
@@ -309,7 +309,7 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
 
       if (authTokenResults.length < 1) {
         // No valid AuthToken found, generate default response.
-        resolve(generateIBProDefaultResponse());
+        resolve(generateDefaultResponse());
       } else {
         // Valid AuthToken found, generate authenticated content.
         selectedUserAuthResponseTop = `<!DOCTYPE html>
@@ -496,7 +496,7 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
 
 }
 
-async function generateIBProDefaultResponse() {
+async function generateDefaultResponse() {
   const domain = ibc.ibDomain;
   const copyright = ibc.ibCopyright;
 
