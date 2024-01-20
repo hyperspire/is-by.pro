@@ -70,7 +70,7 @@ const init = async () => {
       const password = encrypt(request.payload.password);
       const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
 
-      return generateIBProSignup(username, passwordHash);
+      return generateSignup(username, passwordHash);
     }
   });
 
@@ -235,7 +235,7 @@ async function selectUID(ibUser) {
   return { id: crypto.createHash('sha256').update(ibUser.toLowerCase()).digest('hex') };
 }
 
-function generateIBProSignup(username, password) {
+function generateSignup(username, password) {
   return new Promise(async (resolve, reject) => {
     const specialCharRegex = /\W/;
     const ibUID = (await selectUID(username.toLowerCase())).id;
