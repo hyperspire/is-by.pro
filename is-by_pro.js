@@ -209,7 +209,7 @@ async function selectIBProUser(ibUID) {
       if (error) {
         reject(error);
       } else if (selectUserResults.length > 0) {
-        resolve(selectUserResults[0].username);
+        resolve(selectUserResults[0].username.replace(/'/g, ""));
       } else {
         resolve(null);
       }
@@ -291,7 +291,210 @@ async function generateIBProIdentity(request, h, username, password) {
 
 async function generateIBProSelectedAuthUserResponse(ibUID, ibAuthToken, ibSelectedUser) {
   return new Promise(async (resolve, reject) => {
+    const domain = ibc.ibDomain;
+    const ibSelectedUserID = (await selectIBProUID(ibSelectedUser)).id;
+    const ibUser = await selectIBProUser(ibUID);
+    let ibPostID = '';
+    let ibPostForThe = '';
+    let ibPostIsBy = '';
+    let ibPostIsWith = '';
+    let ibPostTimestamp = '';
+    let selectedUserAuthResponseTop = '';
+    let selectedUserIBPostsResponseContent = '';
+    let selectedUserAuthResponseBottom = '';
+    let selectedUserAuthResponse = '';
 
+    pool.query('SELECT authtoken FROM user WHERE id = ?', [ibUID], function (error, authTokenResults, fields) {
+      if (error) reject(error);
+
+      if (authTokenResults.length < 1) {
+        // No valid AuthToken found, generate default response.
+        resolve(generateIBProDefaultResponse());
+      } else {
+        // Valid AuthToken found, generate authenticated content.
+        selectedUserAuthResponseTop = `<!DOCTYPE html>
+<html lang="en-US">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/css/is-by.css">
+    <script src="/js/is-by_user.js" type="text/javascript"></script>
+    <title>:[[ :is-by: pro: anti-social: social-media: ]]:</title>
+</head>
+
+<body>
+    <form id="select-user-form" action="/" method="GET">
+      <input type="hidden" name="ibuid" value="${ibUID}">
+      <input type="hidden" name="ibauthtoken" value="${ibAuthToken}">
+      <input type="hidden" name="ibselecteduser" value="${ibSelectedUser}">
+    </form>
+    <form id="select-post-form" action="https://${domain}/v1/showpost" method="GET">
+      <input type="hidden" name="ibuid" value="${ibUID}">
+      <input type="hidden" name="ibauthtoken" value="${ibAuthToken}">
+      <input type="hidden" name="ibselecteduser" value="${ibSelectedUser}">
+      <input type="hidden" name="pid" value="">
+    </form>
+    <form id="edit-post-form" action="https://${domain}/v1/editpost" method="GET">
+      <input type="hidden" name="ibuid" value="${ibUID}">
+      <input type="hidden" name="ibauthtoken" value="${ibAuthToken}">
+      <input type="hidden" name="ibselecteduser" value="${ibSelectedUser}">
+      <input type="hidden" name="pid" value="">
+    </form>
+    <form id="delete-post-form" action="https://${domain}/v1/deletepost" method="POST">
+      <input type="hidden" name="ibuid" value="${ibUID}">
+      <input type="hidden" name="ibauthtoken" value="${ibAuthToken}">
+      <input type="hidden" name="ibselecteduser" value="${ibSelectedUser}">
+      <input type="hidden" name="pid" value="">
+    </form>
+    <form id="edit-profile-form" action="https://${domain}/v1/profile" method="POST">
+      <input type="hidden" name="ibuid" value="${ibUID}">
+      <input type="hidden" name="ibauthtoken" value="${ibAuthToken}">
+    </form>
+    <div id="main-section">
+      <div id="media-section">
+        <div>
+        <img src="/images/Death_Angel-555x111.png" alt=":Death_Angel-555x111.png:" width="555"
+            height="111">
+        </div>
+        <div id="navigation-section">
+          <a class="post-form-display" href="javascript:void(0);">:[[ :post: ]]:</a>
+          <a class="pro-home-display" href="${ibUser}">:[[ :profile-home: ]]:</a>
+          <a class="show-edit-profile" href="javascript:void(0);">:[[ :edit-profile: ]]:</a>
+        </div>
+        <div id="post-form-section">
+          <form id="post" action="https://${domain}/v1/post" method="POST">
+            <div id="post-character-count"></div>
+            <input type="hidden" name="ibuid" value="${ibUID}">
+            <input type="hidden" name="ibauthtoken" value="${ibAuthToken}">
+            <input class="post-for-the" type="text" placeholder="for-the:" name="forthe" autocomplete="off" required>
+            <input class="post-is-by" type="textfield" placeholder="is-by:" name="isby" autocomplete="off" required>
+            <input class="post-is-with" type="text" placeholder="is-with:" name="iswith" autocomplete="off" required>
+            <input id="post-cancel" class="post-cancel" type="button" value="Cancel">
+            <input class="post-submit" type="submit" value="Post">
+          </form>
+        </div>`;
+        // Does not matter if user is authenticated or not, generate selected user content;
+        // since we are not fascists that require everyone to be logged in to view our content
+        // so we can track them and sell their data to the highest bidder or use it as
+        // circumstantial evidence in the ATSU unknown competitor projects. In fact, we do
+        // not even use cookies or generate logs, we use a custom identity service and encrypted AuthTokens instead.
+        // CREATE TABLE isby.post (id varchar(64), postid varchar(64), forthe varchar(1024), isby varchar(1024), iswith varchar(1024), timestamp varchar(32));
+        let ibPostResults = [];
+        let ibPostResultsLength = 0;
+        const ibPostResultsMaximum = 200;
+        new Promise((resolve, reject) => {
+          pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ? LIMIT ?', [ibSelectedUserID, ibPostResultsMaximum], function(error, results, fields) {
+            if (error) return reject(error);
+            ibPostResults = results;
+            ibPostResultsLength = ibPostResults.length;
+            // Post display algorithm:
+            for (let i = ibPostResultsLength - 1; i > 0; i--) {
+              const ibPostRow = ibPostResults[i];
+              ibPostID = ibPostRow.postid;
+              ibPostForThe = ibPostRow.forthe;
+              ibPostIsBy = ibPostRow.isby;
+              ibPostIsWith = ibPostRow.iswith;
+              ibPostTimestamp = ibPostRow.timestamp;
+              selectedUserIBPostsResponseContent += `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsMaximum} ]]: ]]:</em></p></div>`;
+        
+              if (ibUID === ibSelectedUserID) {
+                // Logged in user is the selected user, show edit and delete menu options.
+                selectedUserIBPostsResponseContent += `
+        <div class="post-section">
+          <div class="for-the">
+            <!-- :[[ :for-the: [[ Δ: { ^ <userid: ${ibUID}> ^ }: ]]:= { postid: "${ibPostID}" }: ]]: -->
+            <div><span class="heading">:[[ :for-the: [[ ${ibPostForThe}: ]]: ]]:</span></div>
+          </div>
+          <div class="is-by">
+            <div><span class="paragraph">:[[ :is-by: ${ibPostIsBy}: ]]:</span></div>
+          </div>
+          <div class="is-with">
+            <div><span class="description">:is-with: ${ibPostIsWith}: <a class="select-user" href="${ibUser}">${ibUser}</a>: ${ibPostTimestamp}</span></div><br>
+            <div><span class="description"><a class="post-link" href="${ibPostID}">:[[ :post-link: ]]:</a> <a class="edit-post" href="${ibPostID}">:[[ :edit: ]]: </a> <a class="delete-post" href="${ibPostID}">:[[ :delete: ]]:</a></span></div>
+          </div>
+        </div>`;
+              } else {
+                // Logged in user is not the selected user, do not show edit and delete menu options.
+                selectedUserIBPostsResponseContent += `
+        <div class="post-section">
+          <div class="for-the">
+            <!-- :[[ :for-the: [[ Δ: { ^ <userid: ${ibUID}> ^ }: ]]:= { postid: "${ibPostID}" }: ]]: -->
+            <div><span class="heading">:[[ :for-the: [[ ${ibPostForThe}: ]]: ]]:</span></div>
+          </div>
+          <div class="is-by">
+            <div><span class="paragraph">:[[ :is-by: ${ibPostIsBy}: ]]:</span></div>
+          </div>
+          <div class="is-with">
+            <div><span class="description">:is-with: ${ibPostIsWith}: <a class="post-link" href="${ibPostID}">:[[ :post-link: ]]:</a> <a class="select-user" href="${ibSelectedUser}">${ibSelectedUser}</a>: ${ibPostTimestamp}:</span></div>
+          </div>
+        </div>`;
+              }
+            }
+            resolve(selectedUserIBPostsResponseContent);
+          });
+        })
+        .then(selectedUserIBPostsResponseContent => {
+          // You can use selectedUserIBPostsResponseContent here
+          console.log(selectedUserIBPostsResponseContent);
+          const proResults = pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID]);
+
+          if (proResults.length < 1) {
+            // No profile found, resolve with error message.
+            return {
+              success: false,
+              message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: is-with: code-checkpoint-reached: 0x0da7e94d: ]]: ]]:'
+            };
+          }
+
+          const ibIBP = proResults.ibp ||= '';
+          const ibPro = proResults.pro ||= '';
+          const ibLocation = proResults.location ||= '';
+          const ibServices = proResults.services ||= '';
+          const ibWebsite = proResults.website ||= '';
+          const ibGitHub = proResults.github ||= '';
+
+          if (ibGitHub) {
+            selectedUserAuthResponseBottom = `
+  </div>
+  <div id="profile-section">
+    <p><strong>:[[ :<a target="_blank" rel="noopener" href="https://github.com/${ibGitHub}">${ibUser}</a>: ☑️: ]]:</strong></p>
+    <p class="paragraph"><em>${ibIBP}</em></p>
+    <p class="description">${ibPro}</p>
+    <p class="description">${ibServices}</p>
+    <p class="description">${ibLocation}</p>
+    <p><a target="_blank" rel="noopener" href="${ibWebsite}">${ibWebsite}</a></p>
+  </div>
+</div>
+</body>
+
+</html>`;
+          } else {
+            selectedUserAuthResponseBottom = `
+    </div>
+    <div id="profile-section">
+      <p><strong>:[[ :${ibUser}: ❌: ]]:</strong></p>
+      <p class="paragraph"><em>${ibIBP}</em></p>
+      <p class="description">${ibPro}</p>
+      <p class="description">${ibServices}</p>
+      <p class="description">${ibLocation}</p>
+      <p><a target="_blank" rel="noopener" href="${ibWebsite}">${ibWebsite}</a></p>
+    </div>
+  </div>
+</body>
+
+</html>`;
+          }
+
+          selectedUserAuthResponse = selectedUserAuthResponseTop + selectedUserIBPostsResponseContent + selectedUserAuthResponseBottom;
+          resolve(selectedUserAuthResponse);
+        })
+        .catch(error => {
+          // Handle any errors
+          console.error(error);
+        });
+      }
+    });
   });
 
 }

@@ -253,7 +253,7 @@ async function generateIBProIdentity(request, h, username, password) {
   const ibSecureIDHash = crypto.createHash('sha256').update(password).digest('hex');
 
   return new Promise((resolve, reject) => {
-    pool.query('SELECT user FROM user WHERE id = ? AND secureid = ?', [ibUID, ibSecureIDHash], function (error, authUserResults, fields) {
+    pool.query('SELECT username FROM user WHERE id = ? AND secureid = ?', [ibUID, ibSecureIDHash], function (error, authUserResults, fields) {
       if (error) reject(error);
 
       if (authUserResults.length < 1) {
