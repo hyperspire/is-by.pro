@@ -82,7 +82,7 @@ const init = async () => {
       const password = encrypt(request.payload.password);
       const passwordHash = crypto.createHash('sha256').update(password).digest('hex');
 
-      return generateIBProIdentity(request, h, username, passwordHash);
+      return generateIdentity(request, h, username, passwordHash);
     }
   });
 
@@ -94,7 +94,7 @@ const init = async () => {
       const ibAuthToken = request.headers['ib-authtoken'] ||= request.payload.ibauthtoken;
       const ibSelectedUser = request.path.slice(1);
 
-      return generateIBProSelectedAuthUserResponse(ibUID, ibAuthToken, ibSelectedUser.toLowerCase());
+      return generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, ibSelectedUser.toLowerCase());
     }
   });
 
@@ -253,7 +253,7 @@ function generateIBProSignup(username, password) {
   });
 }
 
-async function generateIBProIdentity(request, h, username, password) {
+async function generateIdentity(request, h, username, password) {
   const ibUID = (await selectIBProUID(username.toLowerCase())).id;
   const remoteAddress = request.info.remoteAddress;
   const userAgent = request.headers['user-agent'];
@@ -289,7 +289,7 @@ async function generateIBProIdentity(request, h, username, password) {
 
 }
 
-async function generateIBProSelectedAuthUserResponse(ibUID, ibAuthToken, ibSelectedUser) {
+async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, ibSelectedUser) {
   return new Promise(async (resolve, reject) => {
     const domain = ibc.ibDomain;
     const ibSelectedUserID = (await selectIBProUID(ibSelectedUser)).id;
@@ -387,9 +387,9 @@ async function generateIBProSelectedAuthUserResponse(ibUID, ibAuthToken, ibSelec
           pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ? LIMIT ?', [ibSelectedUserID, ibPostResultsMaximum], function(error, results, fields) {
             if (error) return reject(error);
             ibPostResults = results;
-            ibPostResultsLength = ibPostResults.length;
+            ibPostResultsLength = ibPostResults.length - 1;
             // Post display algorithm:
-            for (let i = ibPostResultsLength - 1; i > 0; i--) {
+            for (let i = ibPostResultsLength; i > 0; i--) {
               const ibPostRow = ibPostResults[i];
               ibPostID = ibPostRow.postid;
               ibPostForThe = ibPostRow.forthe;
@@ -435,8 +435,6 @@ async function generateIBProSelectedAuthUserResponse(ibUID, ibAuthToken, ibSelec
           });
         })
         .then(selectedUserIBPostsResponseContent => {
-          // You can use selectedUserIBPostsResponseContent here
-          console.log(selectedUserIBPostsResponseContent);
           const proResults = pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID]);
 
           if (proResults.length < 1) {
@@ -490,8 +488,7 @@ async function generateIBProSelectedAuthUserResponse(ibUID, ibAuthToken, ibSelec
           resolve(selectedUserAuthResponse);
         })
         .catch(error => {
-          // Handle any errors
-          console.error(error);
+          return h.response(`Internal Server Error: ${error}: code-checkpoint-reached: 0xc75a992e:`).code(500);
         });
       }
     });
