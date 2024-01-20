@@ -18,7 +18,7 @@ function encrypt(plainText) {
 
 const data = process.argv[2]; // Get the third element of the process.argv array
 
-console.log(`Received data: ${data}`);
+console.log(`Received Plaintext Data: ${data}`);
 
 const encryptedData = encrypt(data);
 const hexID = crypto.createHash('sha256').update(data.toLowerCase()).digest('hex');
