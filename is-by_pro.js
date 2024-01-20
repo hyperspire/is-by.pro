@@ -192,6 +192,8 @@ function escapeHTML(unsafe) {
     .replaceAll(">", "&gt;")
     .replaceAll("\"", "&quot;")
     .replaceAll("'", "&#039;");
+    .replaceAll("(", "&#040;");
+    .replaceAll(")", "&#041;");
 }
 
 function unescapeHTML(unsafe) {
@@ -201,6 +203,8 @@ function unescapeHTML(unsafe) {
     .replaceAll("&gt;", ">")
     .replaceAll("&quot;", "\"",)
     .replaceAll("&#039;", "'");
+    .replaceAll("&#040;", "(");
+    .replaceAll("&#041;", ")");
 }
 
 async function authenticateUser(ibUID, ibAuthToken) {
