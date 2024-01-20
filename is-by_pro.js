@@ -191,8 +191,8 @@ function escapeHTML(unsafe) {
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll("\"", "&quot;")
-    .replaceAll("'", "&#039;");
-    .replaceAll("(", "&#040;");
+    .replaceAll("'", "&#039;")
+    .replaceAll("(", "&#040;")
     .replaceAll(")", "&#041;");
 }
 
@@ -202,8 +202,8 @@ function unescapeHTML(unsafe) {
     .replaceAll("&lt;", "<")
     .replaceAll("&gt;", ">")
     .replaceAll("&quot;", "\"",)
-    .replaceAll("&#039;", "'");
-    .replaceAll("&#040;", "(");
+    .replaceAll("&#039;", "'")
+    .replaceAll("&#040;", "(")
     .replaceAll("&#041;", ")");
 }
 
@@ -318,7 +318,7 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
     let ibPostIsWith = '';
     let ibPostTimestamp = '';
     let selectedUserAuthResponseTop = '';
-    let selectedUserIBPostsResponseContent = '';
+    let selectedUserPostsResponseContent = '';
     let selectedUserAuthResponseBottom = '';
     let selectedUserAuthResponse = '';
 
@@ -414,11 +414,11 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
               ibPostIsBy = ibPostRow.isby;
               ibPostIsWith = ibPostRow.iswith;
               ibPostTimestamp = ibPostRow.timestamp;
-              selectedUserIBPostsResponseContent += `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsMaximum} ]]: ]]:</em></p></div>`;
+              selectedUserPostsResponseContent += `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsMaximum} ]]: ]]:</em></p></div>`;
         
               if (ibUID === ibSelectedUserID) {
                 // Logged in user is the selected user, show edit and delete menu options.
-                selectedUserIBPostsResponseContent += `
+                selectedUserPostsResponseContent += `
         <div class="post-section">
           <div class="for-the">
             <!-- :[[ :for-the: [[ Δ: { ^ <userid: ${ibUID}> ^ }: ]]:= { postid: "${ibPostID}" }: ]]: -->
@@ -434,7 +434,7 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
         </div>`;
               } else {
                 // Logged in user is not the selected user, do not show edit and delete menu options.
-                selectedUserIBPostsResponseContent += `
+                selectedUserPostsResponseContent += `
         <div class="post-section">
           <div class="for-the">
             <!-- :[[ :for-the: [[ Δ: { ^ <userid: ${ibUID}> ^ }: ]]:= { postid: "${ibPostID}" }: ]]: -->
@@ -449,10 +449,10 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
         </div>`;
               }
             }
-            resolve(selectedUserIBPostsResponseContent);
+            resolve(selectedUserPostsResponseContent);
           });
         })
-        .then(selectedUserIBPostsResponseContent => {
+        .then(selectedUserPostsResponseContent => {
           const proResults = pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID]);
 
           if (proResults.length < 1) {
@@ -502,7 +502,7 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
 </html>`;
           }
 
-          selectedUserAuthResponse = selectedUserAuthResponseTop + selectedUserIBPostsResponseContent + selectedUserAuthResponseBottom;
+          selectedUserAuthResponse = selectedUserAuthResponseTop + selectedUserPostsResponseContent + selectedUserAuthResponseBottom;
           resolve(selectedUserAuthResponse);
         })
         .catch(error => {
