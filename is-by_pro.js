@@ -100,6 +100,18 @@ const init = async () => {
 
   server.route({
     method: 'GET',
+    path: '/{param*}',
+    handler: async function (request, h) {
+      const ibUID = request.headers['ib-uid'] ||= request.payload.ibuid;
+      const ibAuthToken = request.headers['ib-authtoken'] ||= request.payload.ibauthtoken;
+      const ibSelectedUser = request.path.slice(1);
+
+      return generateSelectedUserResponse(request, h, ibUID, ibAuthToken, ibSelectedUser.toLowerCase());
+    }
+  });
+
+  server.route({
+    method: 'GET',
     path: '/css/{param*}',
     handler: {
       directory: {
@@ -312,17 +324,13 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
     const domain = ibc.ibDomain;
     const ibSelectedUserID = (await selectUID(ibSelectedUser)).id;
     const ibUser = await selectUser(ibUID);
-    let ibPostID = '';
-    let ibPostForThe = '';
-    let ibPostIsBy = '';
-    let ibPostIsWith = '';
-    let ibPostTimestamp = '';
+    const ibPostResultsMaximum = 200;
     let selectedUserAuthResponseTop = '';
     let selectedUserPostsResponseContent = '';
     let selectedUserAuthResponseBottom = '';
     let selectedUserAuthResponse = '';
 
-    pool.query('SELECT authtoken FROM user WHERE id = ?', [ibUID], function (error, authTokenResults, fields) {
+    pool.query('SELECT authtoken FROM user WHERE id = ? AND authtoken = ?', [ibUID, ibAuthToken], function (error, authTokenResults, fields) {
       if (error) reject(error);
 
       if (authTokenResults.length < 1) {
@@ -338,7 +346,7 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" type="text/css" href="/css/is-by.css">
     <script src="/js/is-by_user.js" type="text/javascript"></script>
-    <title>:[[ :is-by: pro: anti-social: social-media: ]]:</title>
+    <title>:[[ :is-by: pro: ${ibSelectedUser}: ]]:</title>
 </head>
 
 <body>
@@ -392,20 +400,20 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
             <input class="post-submit" type="submit" value="Post">
           </form>
         </div>`;
-        // Does not matter if user is authenticated or not, generate selected user content;
-        // since we are not fascists that require everyone to be logged in to view our content
-        // so we can track them and sell their data to the highest bidder or use it as
-        // circumstantial evidence in the ATSU unknown competitor projects. In fact, we do
-        // not even use cookies or generate logs, we use a custom identity service and encrypted AuthTokens instead.
         // CREATE TABLE isby.post (id varchar(64), postid varchar(64), forthe varchar(1024), isby varchar(1024), iswith varchar(1024), timestamp varchar(32));
+        let ibPostID = '';
+        let ibPostForThe = '';
+        let ibPostIsBy = '';
+        let ibPostIsWith = '';
+        let ibPostTimestamp = '';
         let ibPostResults = [];
         let ibPostResultsLength = 0;
-        const ibPostResultsMaximum = 200;
         new Promise((resolve, reject) => {
           pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ? LIMIT ?', [ibSelectedUserID, ibPostResultsMaximum], function(error, results, fields) {
             if (error) return reject(error);
             ibPostResults = results;
             ibPostResultsLength = ibPostResults.length - 1;
+            selectedUserPostsResponseContent += `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsMaximum} ]]: ]]:</em></p></div>`;
             // Post display algorithm:
             for (let i = ibPostResultsLength; i > 0; i--) {
               const ibPostRow = ibPostResults[i];
@@ -414,7 +422,6 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
               ibPostIsBy = ibPostRow.isby;
               ibPostIsWith = ibPostRow.iswith;
               ibPostTimestamp = ibPostRow.timestamp;
-              selectedUserPostsResponseContent += `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsMaximum} ]]: ]]:</em></p></div>`;
         
               if (ibUID === ibSelectedUserID) {
                 // Logged in user is the selected user, show edit and delete menu options.
@@ -510,6 +517,13 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
         });
       }
     });
+  });
+
+}
+
+async function generateSelectedUserResponse(request, h, ibUID, ibAuthToken, ibSelectedUser) {
+  return new Promise(async (resolve, reject) => {
+
   });
 
 }
