@@ -546,30 +546,30 @@ async function generateSelectedUserResponse(request, h, ibSelectedUser) {
             <img src="/images/Death_Angel-555x111.png" alt=":Death_Angel-555x111.png:" width="555"
                 height="111">
             </div>`;
-            // CREATE TABLE isby.post (id varchar(64), postid varchar(64), forthe varchar(1024), isby varchar(1024), iswith varchar(1024), timestamp varchar(32));
-            let ibPostID = '';
-            let ibPostForThe = '';
-            let ibPostIsBy = '';
-            let ibPostIsWith = '';
-            let ibPostTimestamp = '';
-            let ibPostResults = [];
-            let ibPostResultsLength = 0;
-            new Promise((resolve, reject) => {
-              pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ? LIMIT ?', [ibSelectedUserID, ibPostResultsMaximum], function(error, results, fields) {
-                if (error) return reject(error);
-                ibPostResults = results;
-                ibPostResultsLength = ibPostResults.length - 1;
-                selectedUserPostsResponseContent += `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsMaximum} ]]: ]]:</em></p></div>`;
-                // Post display algorithm:
-                for (let i = ibPostResultsLength; i > 0; i--) {
-                  const ibPostRow = ibPostResults[i];
-                  ibPostID = ibPostRow.postid;
-                  ibPostForThe = ibPostRow.forthe;
-                  ibPostIsBy = ibPostRow.isby;
-                  ibPostIsWith = ibPostRow.iswith;
-                  ibPostTimestamp = ibPostRow.timestamp;
-            
-                  selectedUserPostsResponseContent += `
+    // CREATE TABLE isby.post (id varchar(64), postid varchar(64), forthe varchar(1024), isby varchar(1024), iswith varchar(1024), timestamp varchar(32));
+    let ibPostID = '';
+    let ibPostForThe = '';
+    let ibPostIsBy = '';
+    let ibPostIsWith = '';
+    let ibPostTimestamp = '';
+    let ibPostResults = [];
+    let ibPostResultsLength = 0;
+    new Promise((resolve, reject) => {
+      pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ? LIMIT ?', [ibSelectedUserID, ibPostResultsMaximum], function(error, results, fields) {
+        if (error) return reject(error);
+        ibPostResults = results;
+        ibPostResultsLength = ibPostResults.length - 1;
+        selectedUserPostsResponseContent += `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsMaximum} ]]: ]]:</em></p></div>`;
+        // Post display algorithm:
+        for (let i = ibPostResultsLength; i > 0; i--) {
+          const ibPostRow = ibPostResults[i];
+          ibPostID = ibPostRow.postid;
+          ibPostForThe = ibPostRow.forthe;
+          ibPostIsBy = ibPostRow.isby;
+          ibPostIsWith = ibPostRow.iswith;
+          ibPostTimestamp = ibPostRow.timestamp;
+    
+          selectedUserPostsResponseContent += `
             <div class="post-section">
               <div class="for-the">
                 <!-- :[[ :for-the: [[ Δ: { ^ <userid: ${ibSelectedUserID}> ^ }: ]]:= { postid: "${ibPostID}" }: ]]: -->
@@ -582,30 +582,30 @@ async function generateSelectedUserResponse(request, h, ibSelectedUser) {
                 <div><span class="description">:is-with: ${ibPostIsWith}: <a class="post-link" href="${ibPostID}">:[[ :post-link: ]]:</a> <a class="select-user" href="${ibSelectedUser}">${ibSelectedUser}</a>: ${ibPostTimestamp}:</span></div>
               </div>
             </div>`;
-                }
-                resolve(selectedUserPostsResponseContent);
-              });
-            })
-            .then(selectedUserPostsResponseContent => {
-              const proResults = pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibSelectedUserID]);
-    
-              if (proResults.length < 1) {
-                // No profile found, resolve with error message.
-                return {
-                  success: false,
-                  message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: is-with: code-checkpoint-reached: 0x0da7e94d: ]]: ]]:'
-                };
-              }
-    
-              const ibIBP = proResults.ibp ||= '';
-              const ibPro = proResults.pro ||= '';
-              const ibLocation = proResults.location ||= '';
-              const ibServices = proResults.services ||= '';
-              const ibWebsite = proResults.website ||= '';
-              const ibGitHub = proResults.github ||= '';
-    
-              if (ibGitHub) {
-                selectedUserResponseBottom = `
+        }
+        resolve(selectedUserPostsResponseContent);
+      });
+    })
+    .then(selectedUserPostsResponseContent => {
+      const proResults = pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibSelectedUserID]);
+
+      if (proResults.length < 1) {
+        // No profile found, resolve with error message.
+        return {
+          success: false,
+          message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: is-with: code-checkpoint-reached: 0x0da7e94d: ]]: ]]:'
+        };
+      }
+
+      const ibIBP = proResults.ibp ||= '';
+      const ibPro = proResults.pro ||= '';
+      const ibLocation = proResults.location ||= '';
+      const ibServices = proResults.services ||= '';
+      const ibWebsite = proResults.website ||= '';
+      const ibGitHub = proResults.github ||= '';
+
+      if (ibGitHub) {
+        selectedUserResponseBottom = `
       </div>
       <div id="profile-section">
         <p><strong>:[[ :<a target="_blank" rel="noopener" href="https://github.com/${ibGitHub}">${ibSelectedUser}</a>: ☑️: ]]:</strong></p>
@@ -619,8 +619,8 @@ async function generateSelectedUserResponse(request, h, ibSelectedUser) {
     </body>
     
     </html>`;
-              } else {
-                selectedUserResponseBottom = `
+      } else {
+        selectedUserResponseBottom = `
         </div>
         <div id="profile-section">
           <p><strong>:[[ :${ibSelectedUser}: ❌: ]]:</strong></p>
@@ -634,14 +634,14 @@ async function generateSelectedUserResponse(request, h, ibSelectedUser) {
     </body>
     
     </html>`;
-              }
-    
-              selectedUserResponse = selectedUserResponseTop + selectedUserPostsResponseContent + selectedUserResponseBottom;
-              resolve(selectedUserResponse);
-            })
-            .catch(error => {
-              return h.response(`Internal Server Error: ${error}: code-checkpoint-reached: 0xc75a992e:`).code(500);
-            });
+      }
+
+      selectedUserResponse = selectedUserResponseTop + selectedUserPostsResponseContent + selectedUserResponseBottom;
+      resolve(selectedUserResponse);
+    })
+    .catch(error => {
+      return h.response(`Internal Server Error: ${error}: code-checkpoint-reached: 0xc75a992e:`).code(500);
+    });
   });
 
 }
