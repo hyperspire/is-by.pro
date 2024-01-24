@@ -102,11 +102,9 @@ const init = async () => {
     method: 'GET',
     path: '/{param*}',
     handler: async function (request, h) {
-      const ibUID = request.headers['ib-uid'] ||= request.payload.ibuid;
-      const ibAuthToken = request.headers['ib-authtoken'] ||= request.payload.ibauthtoken;
       const ibSelectedUser = request.path.slice(1);
 
-      return generateSelectedUserResponse(request, h, ibUID, ibAuthToken, ibSelectedUser.toLowerCase());
+      return generateSelectedUserResponse(request, h, ibSelectedUser.toLowerCase());
     }
   });
 
@@ -460,15 +458,20 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
           });
         })
         .then(selectedUserPostsResponseContent => {
-          const proResults = pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID]);
-
-          if (proResults.length < 1) {
-            // No profile found, resolve with error message.
-            return {
-              success: false,
-              message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: is-with: code-checkpoint-reached: 0x0da7e94d: ]]: ]]:'
-            };
-          }
+          pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibUID], function(error, proResults) {
+            if (error) {
+              // Handle error
+              console.error('An error occurred:', error);
+              return;
+            }
+          
+            if (proResults.length < 1) {
+              // No profile found, resolve with error message.
+              return {
+                success: false,
+                message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: is-with: code-checkpoint-reached: 0x0da7e94d: ]]: ]]:'
+              };
+            }
 
           const ibIBP = proResults.ibp ||= '';
           const ibPro = proResults.pro ||= '';
@@ -508,6 +511,7 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
 
 </html>`;
           }
+        });
 
           selectedUserAuthResponse = selectedUserAuthResponseTop + selectedUserPostsResponseContent + selectedUserAuthResponseBottom;
           resolve(selectedUserAuthResponse);
@@ -521,11 +525,136 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
 
 }
 
-async function generateSelectedUserResponse(request, h, ibUID, ibAuthToken, ibSelectedUser) {
+async function generateSelectedUserResponse(request, h, ibSelectedUser) {
   return new Promise(async (resolve, reject) => {
+    const domain = ibc.ibDomain;
+    const ibSelectedUserID = (await selectUID(ibSelectedUser)).id;
+    const ibPostResultsMaximum = 200;
+    let selectedUserResponseTop = '';
+    let selectedUserPostsResponseContent = '';
+    let selectedUserResponseBottom = '';
+    let selectedUserResponse = '';
+    selectedUserResponseTop = `<!DOCTYPE html>
+<html lang="en-US">
 
-  });
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/css/is-by.css">
+    <script src="/js/is-by_user.js" type="text/javascript"></script>
+    <title>:[[ :is-by: pro: ${ibSelectedUser}: ]]:</title>
+</head>
 
+<body>
+    <div id="main-section">
+      <div id="media-section">
+        <div>
+        <img src="/images/Death_Angel-555x111.png" alt=":Death_Angel-555x111.png:" width="555"
+            height="111">
+        </div>`;
+        // CREATE TABLE isby.post (id varchar(64), postid varchar(64), forthe varchar(1024), isby varchar(1024), iswith varchar(1024), timestamp varchar(32));
+        let ibPostID = '';
+        let ibPostForThe = '';
+        let ibPostIsBy = '';
+        let ibPostIsWith = '';
+        let ibPostTimestamp = '';
+        let ibPostResults = [];
+        let ibPostResultsLength = 0;
+        new Promise((resolve, reject) => {
+          pool.query('SELECT postid, forthe, isby, iswith, timestamp FROM post WHERE id = ? LIMIT ?', [ibSelectedUserID, ibPostResultsMaximum], function(error, results, fields) {
+            if (error) return reject(error);
+            ibPostResults = results;
+            ibPostResultsLength = ibPostResults.length - 1;
+            selectedUserPostsResponseContent += `<div class="notice"><p><em>:[[ :for-the: [[ posts: is-by: ${ibPostResultsLength}: is-with: showing-latest-results: truncated: is-by: ${ibPostResultsMaximum} ]]: ]]:</em></p></div>`;
+            // Post display algorithm:
+            for (let i = ibPostResultsLength; i > 0; i--) {
+              const ibPostRow = ibPostResults[i];
+              ibPostID = ibPostRow.postid;
+              ibPostForThe = ibPostRow.forthe;
+              ibPostIsBy = ibPostRow.isby;
+              ibPostIsWith = ibPostRow.iswith;
+              ibPostTimestamp = ibPostRow.timestamp;
+        
+              selectedUserPostsResponseContent += `
+        <div class="post-section">
+          <div class="for-the">
+            <!-- :[[ :for-the: [[ Δ: { ^ <userid: ${ibSelectedUserID}> ^ }: ]]:= { postid: "${ibPostID}" }: ]]: -->
+            <div><span class="heading">:[[ :for-the: [[ ${ibPostForThe}: ]]: ]]:</span></div>
+          </div>
+          <div class="is-by">
+            <div><span class="paragraph">:[[ :is-by: ${ibPostIsBy}: ]]:</span></div>
+          </div>
+          <div class="is-with">
+            <div><span class="description">:is-with: ${ibPostIsWith}: <a class="post-link" href="${ibPostID}">:[[ :post-link: ]]:</a> <a class="select-user" href="${ibSelectedUser}">${ibSelectedUser}</a>: ${ibPostTimestamp}:</span></div>
+          </div>
+        </div>`;
+            }
+            resolve(selectedUserPostsResponseContent);
+      });
+    })
+    .then(selectedUserPostsResponseContent => {
+      pool.query('SELECT ibp, pro, location, services, website, github FROM pro WHERE id = ?', [ibSelectedUserID], function(error, proResults) {
+        if (error) {
+          // Handle error
+          console.error('An error occurred:', error);
+          return;
+        }
+      
+        if (proResults.length < 1) {
+          // No profile found, resolve with error message.
+          return {
+            success: false,
+            message: ':[[ :WARNO: 404: no-profile-found: MIA: for-the: [[ user: is-with: wind: is-with: code-checkpoint-reached: 0x0da7e94d: ]]: ]]:'
+          };
+        }
+
+          const ibIBP = proResults.ibp ||= '';
+          const ibPro = proResults.pro ||= '';
+          const ibLocation = proResults.location ||= '';
+          const ibServices = proResults.services ||= '';
+          const ibWebsite = proResults.website ||= '';
+          const ibGitHub = proResults.github ||= '';
+
+          if (ibGitHub) {
+            selectedUserResponseBottom = `
+  </div>
+  <div id="profile-section">
+    <p><strong>:[[ :<a target="_blank" rel="noopener" href="https://github.com/${ibGitHub}">${ibSelectedUser}</a>: ☑️: ]]:</strong></p>
+    <p class="paragraph"><em>${ibIBP}</em></p>
+    <p class="description">${ibPro}</p>
+    <p class="description">${ibServices}</p>
+    <p class="description">${ibLocation}</p>
+    <p><a target="_blank" rel="noopener" href="${ibWebsite}">${ibWebsite}</a></p>
+  </div>
+</div>
+</body>
+
+</html>`;
+          } else {
+            selectedUserResponseBottom = `
+    </div>
+    <div id="profile-section">
+      <p><strong>:[[ :${ibSelectedUser}: ❌: ]]:</strong></p>
+      <p class="paragraph"><em>${ibIBP}</em></p>
+      <p class="description">${ibPro}</p>
+      <p class="description">${ibServices}</p>
+      <p class="description">${ibLocation}</p>
+      <p><a target="_blank" rel="noopener" href="${ibWebsite}">${ibWebsite}</a></p>
+    </div>
+  </div>
+</body>
+
+</html>`;
+          }
+        });
+
+      selectedUserResponse = selectedUserResponseTop + selectedUserPostsResponseContent + selectedUserResponseBottom;
+      resolve(selectedUserResponse);  // This resolve corresponds to the outer Promise
+    })
+    .catch(error => {
+      return h.response(`Internal Server Error: ${error}: code-checkpoint-reached: 0xad92ae14:`).code(500);
+    });
+  });  // This closing bracket corresponds to the outer Promise
 }
 
 async function generateDefaultResponse() {
