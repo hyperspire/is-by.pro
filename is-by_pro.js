@@ -614,6 +614,23 @@ async function generateSelectedUserResponse(request, h, ibSelectedUser) {
         <p class="description">${ibServices}</p>
         <p class="description">${ibLocation}</p>
         <p><a target="_blank" rel="noopener" href="${ibWebsite}">${ibWebsite}</a></p>
+        <div class="pro-login-section">
+        <form id="login" action="https://${domain}/v1/identity" method="POST">
+          <input type="text" placeholder="Username" name="username"  autocomplete="username" required>
+          <input type="password" placeholder="Password" name="password" autocomplete="current-password" required>
+          <input type="submit" value="Login">
+          <p id="login-message"></p>
+        </form>
+      </div>
+      <div class="pro-signup-section">
+          <form id="signup" action="https://${domain}/v1/signup" method="POST">
+            <input type="text" placeholder="Username" name="username" autocomplete="username" required>
+            <input type="password" placeholder="Password" name="password" autocomplete="new-password" required>
+            <input type="submit" value="Signup">
+            <p id="signup-message"></p>
+          </form>
+        </div>
+      </div>
       </div>
     </div>
     </body>
@@ -629,6 +646,22 @@ async function generateSelectedUserResponse(request, h, ibSelectedUser) {
           <p class="description">${ibServices}</p>
           <p class="description">${ibLocation}</p>
           <p><a target="_blank" rel="noopener" href="${ibWebsite}">${ibWebsite}</a></p>
+          <div class="pro-login-section">
+          <form id="login" action="https://${domain}/v1/identity" method="POST">
+            <input type="text" placeholder="Username" name="username"  autocomplete="username" required>
+            <input type="password" placeholder="Password" name="password" autocomplete="current-password" required>
+            <input type="submit" value="Login">
+            <p id="login-message"></p>
+          </form>
+        </div>
+        <div class="pro-signup-section">
+            <form id="signup" action="https://${domain}/v1/signup" method="POST">
+              <input type="text" placeholder="Username" name="username" autocomplete="username" required>
+              <input type="password" placeholder="Password" name="password" autocomplete="new-password" required>
+              <input type="submit" value="Signup">
+              <p id="signup-message"></p>
+            </form>
+          </div>
         </div>
       </div>
     </body>
