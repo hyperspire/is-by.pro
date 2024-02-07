@@ -152,6 +152,7 @@ function attachNewPostEventListener() {
   ibPostForm.addEventListener('submit', (event) => {
     event.preventDefault();
 
+    let ibUsername = '';
     const ibUID = ibPostForm.querySelector('input[name="ibuid"]').value;
     const ibAuthToken = ibPostForm.querySelector('input[name="ibauthtoken"]').value;
     const forThe = ibPostForm.querySelector('input[name="forthe"]').value;
@@ -169,13 +170,22 @@ function attachNewPostEventListener() {
       body: JSON.stringify({ 'ibuid': ibUID, 'ibauthtoken': ibAuthToken, 'forthe': forThe, 'isby': isBy, 'iswith': isWith }),
     })
       .then(async response => {
-        for (let [key, value] of response.headers.entries()) {
-          console.log(`${key}: ${value}`);
+        ibUsername = response.headers.get('ib-username');
+        if (response.ok) {
+          return response.json();
         }
-
-        await response.text();
       })
-      .then(data => generateIBFormSuccess(data))
+      .then(data => {
+        if (data.success === true) {
+          generateIBFormMessageSuccess('post-message', data.message);
+          console.log('ibUsername:', ibUsername);
+          console.log('ibUID:', ibUID);
+          console.log('ibAuthToken:', ibAuthToken);
+          generateIBLoginFormSuccess(ibUsername, ibUID, ibAuthToken);
+        } else if (data.success === false) {
+          generateIBFormMessageFailure('post-message', data.message);
+        }
+      })
       .catch(error => generateIBFormMessageFailure('new-post-message', error))
   });
 

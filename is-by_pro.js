@@ -109,6 +109,20 @@ const init = async () => {
   });
 
   server.route({
+    method: 'POST',
+    path: '/v1/post',
+    handler: async function (request, h) {
+      const ibUID = request.headers['ib-uid'] ||= request.payload.ibuid;
+      const ibAuthToken = request.headers['ib-authtoken'] ||= request.payload.ibauthtoken;
+      const ibPostForThe = request.payload.forthe;
+      const ibPostIsBy = request.payload.isby;
+      const ibPostIsWith = request.payload.iswith;
+
+      return generatePost(request, h, ibUID, ibAuthToken, ibPostForThe, ibPostIsBy, ibPostIsWith);
+    }
+  });
+
+  server.route({
     method: 'GET',
     path: '/css/{param*}',
     handler: {
@@ -215,6 +229,11 @@ function unescapeHTML(unsafe) {
     .replaceAll("&#039;", "'")
     .replaceAll("&#040;", "(")
     .replaceAll("&#041;", ")");
+}
+
+function convertUrlsToLinks(text) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  return text.replace(urlRegex, url => `<a href="${url}" target="_blank" rel="noopener">${url}</a>`);
 }
 
 async function authenticateUser(ibUID, ibAuthToken) {
@@ -388,6 +407,7 @@ async function generateSelectedAuthUserResponse(request, h, ibUID, ibAuthToken, 
         </div>
         <div id="post-form-section">
           <form id="post" action="https://${domain}/v1/post" method="POST">
+            <div id="post-message"></div>
             <div id="post-character-count"></div>
             <input type="hidden" name="ibuid" value="${ibUID}">
             <input type="hidden" name="ibauthtoken" value="${ibAuthToken}">
@@ -677,6 +697,54 @@ async function generateSelectedUserResponse(request, h, ibSelectedUser) {
     });
   });
 
+}
+
+async function generatePost(request, h, ibUID, ibAuthToken, ibPostForThe, ibPostIsBy, ibPostIsWith) {
+  return new Promise(async (resolve, reject) => {
+    const ibUsername = await selectUser(ibUID);
+    let ibNewPostForThe = '';
+    let ibNewPostIsBy = '';
+    let ibNewPostIsWith = '';
+
+    if (ibPostForThe !== undefined) {
+      const ibNewPostCrypTEXForThe = ibPostForThe.replaceAll(/ /g, '-').replaceAll(/:-/g, ': ').replaceAll(/\[\[-/g, '[[ ');
+      ibNewPostForThe = escapeHTML(ibNewPostCrypTEXForThe);
+    }
+    if (ibPostIsBy !== undefined) {
+      const ibNewPostCrypTEXIsBy = ibPostIsBy.replaceAll(/ /g, '-').replaceAll(/:-/g, ': ').replaceAll(/\[\[-/g, '[[ ');
+      ibNewPostIsBy = escapeHTML(ibNewPostCrypTEXIsBy);
+    }
+    if (ibPostIsWith !== undefined) {
+      const ibNewPostCrypTEXIsWith = ibPostIsWith.replaceAll(/ /g, '-').replaceAll(/:-/g, ': ').replaceAll(/\[\[-/g, '[[ ');
+      ibNewPostIsWith = escapeHTML(ibNewPostCrypTEXIsWith);
+      ibNewPostIsWith = convertUrlsToLinks(ibNewPostIsWith);
+    }
+
+    if (ibNewPostForThe.length > 1024) { ibNewPostForThe = ibNewPostForThe.substring(0, 1023); }
+    if (ibNewPostIsBy.length > 1024) { ibNewPostIsBy = ibNewPostIsBy.substring(0, 1023); }
+    if (ibNewPostIsWith.length > 1024) { ibNewPostIsWith = ibNewPostIsWith.substring(0, 1023); }
+
+    if (authenticateUser(ibUID, ibAuthToken) === null) {
+      resolve({
+        success: false,
+        message: ':[[ :WARNO: unauthorized: ]]:'
+      });
+    } else {
+      const ibPostTimestamp = new Date().toUTCString();
+      const ibPostID = crypto.createHash('sha256').update(ibNewPostForThe + ibNewPostIsBy + ibNewPostIsWith + ibPostTimestamp).digest('hex');
+      pool.query('INSERT INTO post (id, postid, forthe, isby, iswith, timestamp) VALUES (?, ?, ?, ?, ?, ?)', [ibUID, ibPostID, ibNewPostForThe, ibNewPostIsBy, ibNewPostIsWith, ibPostTimestamp], function (error, addPostResults, fields) {
+        if (error) reject(error);
+        const response = h.response({
+          success: true,
+          message: ':[[ :SUCCESS: post-added: ]]:'
+        });
+
+        response.header('ib-username', ibUsername);
+
+        resolve(response);
+      });
+    }
+  });
 }
 
 async function generateDefaultResponse() {
