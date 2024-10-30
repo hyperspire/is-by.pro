@@ -3,6 +3,7 @@ node_modules/
 package-lock.json
 
 is-by_config.json
+mysql-database-scheme.sql
 
 # SSL Keys
 ssl
